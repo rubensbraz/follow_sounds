@@ -1,20 +1,42 @@
-int pino_rele = 7;
-int pino_som = 2;
-int porta_mic_a = A5; // Portas dos dispositivos
+/**
+ * Project: Sound Reactive Relay Controller
+ * Description: Toggles a relay state based on digital input from a sound sensor.
+ * Author: Rubens Braz
+ */
 
-boolean rele = HIGH; // Booleano para poder usar a operacao NAO
+// --- Hardware Configuration ---
+const int RELAY_PIN = 7;        // Pin connected to the Relay Module
+const int SOUND_SENSOR_PIN = 2; // Pin connected to the Sound Sensor Digital Output (DO)
+
+// --- Settings ---
+const int BEAT_DELAY = 75;      // Delay in ms to prevent flickering (debounce)
+
+// --- Global Variables ---
+bool relayState = HIGH;         // Stores the current state of the relay
 
 void setup() {
-  pinMode(pino_som, INPUT); // Pino do microfone como entrada
-  pinMode(pino_rele, OUTPUT); // Pino do relé como saída
-}
- 
-void loop() {
-  int som = digitalRead(pino_som); // Verifica se a saída do microfone está ativa
+  // Initialize pins
+  pinMode(SOUND_SENSOR_PIN, INPUT);
+  pinMode(RELAY_PIN, OUTPUT);
 
-  if(som){ // Se o som estiver alto
-	rele = !rele; //Operacao NAO: Se estiver LOW, passa pra HIGH. Se estiver HIGH passa para LOW
-	digitalWrite(pino_rele, rele); // Manda o valor da variável para o rele
-	delay(75); // Aguarda 75 milisegundos para não ficar ligando e desligando sem parar
+  // Set initial relay state
+  digitalWrite(RELAY_PIN, relayState);
+}
+
+void loop() {
+  // Read the digital output from the sound sensor
+  // HIGH usually means sound was detected above the threshold
+  bool soundDetected = digitalRead(SOUND_SENSOR_PIN);
+
+  if (soundDetected) {
+    // Toggle the relay state (ON to OFF, or OFF to ON)
+    relayState = !relayState;
+    
+    // Apply the new state to the hardware
+    digitalWrite(RELAY_PIN, relayState);
+
+    // Wait a short moment to debounce the sound peak
+    // This prevents the light from flashing too frantically on a single beat
+    delay(BEAT_DELAY);
   }
 }
